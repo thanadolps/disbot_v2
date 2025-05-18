@@ -195,8 +195,15 @@ mod tests {
     #[test]
     fn ptb() {
         assert_eq!(
-            pattern_to_braille([[false, false]; 4], &Default::default()),
-            '⠀'
+            pattern_to_braille(
+                [[false, false]; 4],
+                &BrailleConfig {
+                    monospace: false,
+                    threshold: 125,
+                    invert: false
+                }
+            ),
+            '⠄'
         );
         assert_eq!(
             pattern_to_braille(
@@ -207,7 +214,7 @@ mod tests {
                     invert: false
                 }
             ),
-            '⠄'
+            '⠀'
         );
         assert_eq!(
             pattern_to_braille([[true, true]; 4], &Default::default()),
