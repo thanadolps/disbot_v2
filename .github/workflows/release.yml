@@ -4,11 +4,17 @@ on:
   workflow_dispatch:
 
 jobs:
-  os:
-    runs-on: ubuntu-latest-arm
+  release:
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
-      - run: rustup toolchain install stable --profile minimal --no-self-update
+      - uses: rui314/setup-mold@v1
+      - name: Install Rust
+        run: |
+          # pin to specific nightly version so cranelift work and cache is effective
+          rustup toolchain install nightly-2025-04-03 --profile minimal --no-self-update
+          rustup default nightly-2025-04-03
+          rustup component add rustc-codegen-cranelift-preview --toolchain nightly-2025-04-03
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
       - run: cargo build --release
