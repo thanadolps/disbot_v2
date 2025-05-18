@@ -1,4 +1,4 @@
-FROM python:3-alphine
+FROM python:3-alpine
 
 WORKDIR /app
 COPY ./target/release/disbot_v2 ./disbot_v2
