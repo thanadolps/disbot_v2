@@ -16,8 +16,7 @@ pub async fn fibo(ctx: Context<'_>, n: u32) -> Result<()> {
     // too big, wolfram alpha time
     if n > 5000000 {
         ctx.reply(format!(
-            "https://www.wolframalpha.com/input?i=fibonacci%28{}%29",
-            n
+            "https://www.wolframalpha.com/input?i=fibonacci%28{n}%29"
         ))
         .await?;
         return Ok(());
@@ -32,7 +31,7 @@ pub async fn fibo(ctx: Context<'_>, n: u32) -> Result<()> {
     } else {
         CreateReply::default().attachment(CreateAttachment::bytes(
             result.into_bytes(),
-            format!("fibo_{}.txt", n),
+            format!("fibo_{n}.txt"),
         ))
     };
     ctx.send(reply).await?;

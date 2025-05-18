@@ -1,4 +1,4 @@
-use image::{GenericImageView, ImageBuffer, Luma, Pixel};
+use image::{ImageBuffer, Pixel};
 use slice_of_array::prelude::*;
 use std::ops::Deref;
 
@@ -73,44 +73,44 @@ where
     buf
 }
 
-struct PatternRow<'a, P, C>
-where
-    P: Pixel<Subpixel = u8> + 'static,
-    C: Deref<Target = [P::Subpixel]>,
-{
-    image: &'a ImageBuffer<P, C>,
-    y: u32,
-    config: &'a BrailleConfig,
+// struct PatternRow<'a, P, C>
+// where
+//     P: Pixel<Subpixel = u8> + 'static,
+//     C: Deref<Target = [P::Subpixel]>,
+// {
+//     image: &'a ImageBuffer<P, C>,
+//     y: u32,
+//     config: &'a BrailleConfig,
 
-    x: u32,
-}
+//     x: u32,
+// }
 
-impl<'a, P, C> Iterator for PatternRow<'a, P, C>
-where
-    P: Pixel<Subpixel = u8> + 'static,
-    C: Deref<Target = [P::Subpixel]>,
-{
-    type Item = char;
+// impl<'a, P, C> Iterator for PatternRow<'a, P, C>
+// where
+//     P: Pixel<Subpixel = u8> + 'static,
+//     C: Deref<Target = [P::Subpixel]>,
+// {
+//     type Item = char;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        let w = self.image.width() - 1;
+//     fn next(&mut self) -> Option<Self::Item> {
+//         let w = self.image.width() - 1;
 
-        if self.x >= w {
-            return None;
-        }
+//         if self.x >= w {
+//             return None;
+//         }
 
-        let pattern = extract_pattern(self.image, self.x, self.y, self.config);
-        let braille = pattern_to_braille(pattern, self.config);
-        self.x += 2;
-        Some(braille)
-    }
+//         let pattern = extract_pattern(self.image, self.x, self.y, self.config);
+//         let braille = pattern_to_braille(pattern, self.config);
+//         self.x += 2;
+//         Some(braille)
+//     }
 
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let w = self.image.width() - 1;
-        let len = ((w - self.x) / 2) as usize;
-        (len, Some(len))
-    }
-}
+//     fn size_hint(&self) -> (usize, Option<usize>) {
+//         let w = self.image.width() - 1;
+//         let len = ((w - self.x) / 2) as usize;
+//         (len, Some(len))
+//     }
+// }
 
 fn extract_pattern_row<'a, P, C>(
     image: &'a ImageBuffer<P, C>,

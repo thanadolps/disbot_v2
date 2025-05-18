@@ -1,16 +1,11 @@
 use color_eyre::eyre::Result;
-use genawaiter::{
-    stack::{let_gen, let_gen_using, producer_fn, Co},
-    yield_,
-};
-use image::{DynamicImage, GenericImageView, Luma, Pixel};
-use itertools::Itertools;
+use image::GenericImageView;
 use poise::{command, serenity_prelude::Attachment};
 
 use crate::{braille, Context, DISCORD_MESSAGE_LIMIT, DISCORD_WIDTH_LIMIT};
 
 const N_CHAR_IN_ROW: usize = DISCORD_WIDTH_LIMIT;
-const ROW_PER_MESSAGE: usize = (DISCORD_MESSAGE_LIMIT / N_CHAR_IN_ROW) as usize;
+const ROW_PER_MESSAGE: usize = DISCORD_MESSAGE_LIMIT / N_CHAR_IN_ROW;
 
 /// Convert a provided image into text (braille unicode)
 #[command(prefix_command, slash_command)]
@@ -73,7 +68,7 @@ async fn unicode_inner(
                 buf.chars().count(),
                 DISCORD_MESSAGE_LIMIT
             );
-            eprintln!("{}", buf);
+            eprintln!("{buf}");
         }
         ctx.say(buf).await?;
     }

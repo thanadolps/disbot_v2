@@ -5,52 +5,17 @@ mod pyremote;
 mod fibo;
 mod unicode;
 
-use image::DynamicImage;
 use poise::command;
-use poise::samples::register_in_guild;
 use poise::serenity_prelude as serenity;
-use poise::serenity_prelude::Attachment;
-use poise::serenity_prelude::AttachmentType;
 use poise::serenity_prelude::CreateAttachment;
-use poise::serenity_prelude::FutureExt;
-use poise::serenity_prelude::GuildId;
-use poise::CodeBlock;
 use poise::CreateReply;
-use rand::thread_rng;
-use rug::ops;
 use serenity::GatewayIntents;
-// use serenity::client::{Client, Context, EventHandler};
-// use serenity::framework::standard::{
-//     help_commands,
-//     macros::{group, help},
-//     Args, CommandError, CommandGroup, CommandResult, HelpOptions, StandardFramework,
-// };
-use serenity::model::channel::Message;
-use std::borrow::Cow;
-use std::ops::Deref;
 use std::time::Duration;
 use tokio::time::MissedTickBehavior;
 
 use color_eyre::Result;
-// use ibig::UBig;
-use image::GenericImageView;
-use itertools::Itertools;
 use rand::prelude::*;
-// use serenity::builder::CreateMessage;
-use serenity::futures::{
-    future::{self, Either},
-    pin_mut, StreamExt,
-};
-// use serenity::model::prelude::{AttachmentType, Channel, ChannelType, User, UserId};
-// use serenity::prelude::GatewayIntents;
-// use serenity::static_assertions::_core::time::Duration;
-// use serenity::utils::MessageBuilder;
-use std::collections::HashSet;
 use std::env;
-use std::fmt::Display;
-use std::future::Future;
-use std::process::Output;
-use std::str::from_utf8;
 
 const DISCORD_MESSAGE_LIMIT: usize = 2000;
 const DISCORD_WIDTH_LIMIT: usize = 60;
@@ -58,15 +23,6 @@ const DISCORD_WIDTH_LIMIT: usize = 60;
 struct Data {}
 type Error = color_eyre::eyre::Error;
 type Context<'a> = poise::Context<'a, Data, Error>;
-
-// #[group]
-// #[commands(hello, count, unicode, fibo, py, swap_channel)]
-// struct General;
-
-// struct Handler;
-
-// #[async_trait]
-// impl EventHandler for Handler {}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -160,9 +116,9 @@ async fn count(ctx: Context<'_>, second: u8, weeb: Option<bool>) -> Result<()> {
 
     let weeb = weeb.unwrap_or(false);
     let reply = if weeb {
-        |sec| format!("{}秒経過！", sec)
+        |sec| format!("{sec}秒経過！")
     } else {
-        |sec| format!("{} second has passed", sec)
+        |sec| format!("{sec} second has passed")
     };
 
     for i in 1..=second {
@@ -212,7 +168,7 @@ async fn py(ctx: Context<'_>, #[rest] code: String) -> Result<()> {
     ctx.defer_or_broadcast().await?;
 
     // run python code
-    let output = match pyremote::secure_run_python_code(&code, Duration::from_secs(5)).await {
+    let output = match pyremote::secure_run_python_code(code, Duration::from_secs(5)).await {
         Ok(output) => output,
         Err(pyremote::Error::Timeout { timeout }) => {
             ctx.reply(format!("Code Timeout in {} seconds", timeout.as_secs()))
@@ -238,7 +194,7 @@ async fn py(ctx: Context<'_>, #[rest] code: String) -> Result<()> {
         [stdout, stderr]
             .iter()
             .filter(|s| !s.is_empty())
-            .map(|s| format!("```{}```", s)), // warp output in code block
+            .map(|s| format!("```{s}```")), // warp output in code block
         "\n",
     );
 
