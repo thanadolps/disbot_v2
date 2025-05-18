@@ -1,0 +1,37 @@
+cargo-features = ["codegen-backend"]
+[package]
+name = "disbot_v2"
+version = "0.1.0"
+authors = ["Lenovo"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+poise = "0.6.1"
+dotenvy = "0.15.0"
+image = "0.25.6"
+slice-of-array = "0.3.2"
+itertools = "0.14.0"
+rand = "0.9.1"
+tempfile = "3.20.0"
+color-eyre = "0.6.4"
+rug = { version = "1.27.0", default-features = false, features = [
+    "integer",
+    "std",
+] }
+tokio = { version = "1.45.0", default-features = false, features = [
+    "macros",
+    "time",
+    "rt-multi-thread",
+] }
+genawaiter = "0.99.1"
+async-process = "2.3.0"
+thiserror = "2.0.12"
+
+[profile.dev]
+debug = 0
+codegen-backend = "cranelift"
+
+[profile.dev.build-override]
+opt-level = 3
