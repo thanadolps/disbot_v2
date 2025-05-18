@@ -9,20 +9,37 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: rui314/setup-mold@v1
-      - name: Install Rust
-        run: |
-          # pin to specific nightly version so cranelift work and cache is effective
-          rustup toolchain install nightly-2025-04-03 --profile minimal --no-self-update
-          rustup default nightly-2025-04-03
-          rustup component add rustc-codegen-cranelift-preview --toolchain nightly-2025-04-03
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test
-      - run: cargo build --release
+      # - name: Install Rust
+      #   run: |
+      #     # Pin to specific nightly version so cranelift work and cache is effective
+      #     rustup toolchain install nightly-2025-04-03 --profile minimal --no-self-update
+      #     rustup default nightly-2025-04-03
+      #     rustup component add rustc-codegen-cranelift-preview --toolchain nightly-2025-04-03
+      #     # Add musl target for static linking
+      #     rustup target add aarch64-unknown-linux-musl
+      # - name: Install musl tools
+      #   run: sudo apt-get update && sudo apt-get install -y musl-tools
+      # - uses: Swatinem/rust-cache@v2
+      # - run: cargo test
+      # - run: cargo build --release --target aarch64-unknown-linux-musl
+
+      - name: Build binary
+        uses: houseabsolute/actions-rust-cross@v1
+        with:
+          command: build
+          args: "--release"
+          target: aarch64-unknown-linux-musl
+          toolchain: nightly-2025-04-03
+          strip: true
+          use-rust-cache: true
+      - run: |
+          ls
+          ls target
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: target/release/disbot_v2
+          path: target/aarch64-unknown-linux-musl/release/disbot_v2
 
   release:
     needs: build
