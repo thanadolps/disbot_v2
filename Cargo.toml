@@ -13,7 +13,11 @@ dotenvy = "0.15.0"
 image = "0.25.6"
 slice-of-array = "0.3.2"
 itertools = "0.14.0"
-rand = { version = "0.9.1", default-features = false, features = ["os_rng", "small_rng", "std"] }
+rand = { version = "0.9.1", default-features = false, features = [
+    "os_rng",
+    "small_rng",
+    "std",
+] }
 tempfile = "3.20.0"
 color-eyre = "0.6.4"
 rug = { version = "1.27.0", default-features = false, features = [
@@ -25,7 +29,6 @@ tokio = { version = "1.45.0", default-features = false, features = [
     "time",
     "rt-multi-thread",
 ] }
-genawaiter = "0.99.1"
 async-process = "2.3.0"
 thiserror = "2.0.12"
 gmp-mpfr-sys = { version = "1.6.5", features = ["force-cross"] }
