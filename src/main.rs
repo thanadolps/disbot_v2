@@ -10,6 +10,7 @@ use poise::serenity_prelude as serenity;
 use poise::serenity_prelude::CreateAttachment;
 use poise::CreateReply;
 use serenity::GatewayIntents;
+use std::cell::RefCell;
 use std::time::Duration;
 use tokio::time::MissedTickBehavior;
 
@@ -20,7 +21,12 @@ use std::env;
 const DISCORD_MESSAGE_LIMIT: usize = 2000;
 const DISCORD_WIDTH_LIMIT: usize = 60;
 
+thread_local! {
+    static RNG: RefCell<SmallRng> = RefCell::new(SmallRng::from_os_rng());
+}
+
 struct Data {}
+
 type Error = color_eyre::eyre::Error;
 type Context<'a> = poise::Context<'a, Data, Error>;
 
@@ -31,9 +37,6 @@ async fn main() -> Result<()> {
 
     // Login with a bot token from the environment
     let token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN envar should be set");
-    // let intents = GatewayIntents::GUILD_MESSAGES
-    //     | GatewayIntents::DIRECT_MESSAGES
-    //     | GatewayIntents::MESSAGE_reply;
     let intents = GatewayIntents::non_privileged();
 
     let framework = poise::Framework::builder()
@@ -85,23 +88,20 @@ async fn main() -> Result<()> {
 /// Force bot to greet you
 #[command(prefix_command, slash_command)]
 async fn hello(ctx: Context<'_>) -> Result<()> {
-    let greeting = {
-        [
-            "hello",
-            "hi",
-            "what's up",
-            "good day",
-            "how are you",
-            "howdy",
-            "greetings",
-            "bonjour",
-            "hola",
-            "こんにちは",
-        ]
-        .choose(&mut rand::rng())
-        .expect("not empty slice")
-    };
+    const GREETINGS: &[&str] = &[
+        "hello",
+        "hi",
+        "what's up",
+        "good day",
+        "how are you",
+        "howdy",
+        "greetings",
+        "bonjour",
+        "hola",
+        "こんにちは",
+    ];
 
+    let greeting = RNG.with_borrow_mut(|rng| GREETINGS.choose(rng).expect("not empty slice"));
     let reply = format!("{} {}", greeting, ctx.author());
     ctx.reply(reply).await?;
     Ok(())
