@@ -4,66 +4,37 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-24.04-arm
     steps:
-      - uses: actions/checkout@v4
-      - uses: rui314/setup-mold@v1
-      - name: Install Rust
-        run: |
-          # Pin to specific nightly version so cranelift work and cache is effective
-          rustup toolchain install nightly-2025-04-03 --profile minimal --no-self-update
-          rustup default nightly-2025-04-03
-          rustup component add rustc-codegen-cranelift-preview --toolchain nightly-2025-04-03
-          # Add musl target for static linking
-          # rustup target add aarch64-unknown-linux-musl
-      # - name: Install musl tools
-      #   run: sudo apt-get update && sudo apt-get install -y musl-tools
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo test
-      - run: cargo build --release
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # - name: Build binary
-      #   uses: houseabsolute/actions-rust-cross@v1
-      #   with:
-      #     command: build
-      #     args: "--release"
-      #     target: aarch64-unknown-linux-musl
-      #     toolchain: nightly-2025-04-03
-      #     strip: true
-      #     use-rust-cache: true
-      # - run: |
-      #     ls
-      #     ls target
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          name: build-artifacts
-          # path: target/aarch64-unknown-linux-musl/release/disbot_v2
-          path: target/release/disbot_v2
+          images: thanadolps/disbot_v2
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
 
-  release:
-    needs: build
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v4
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-          path: target/release
-      - name: Make binary executable
-        run: chmod +x target/release/disbot_v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: thanadolps/disbot_v2:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

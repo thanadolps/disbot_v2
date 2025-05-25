@@ -1,17 +1,32 @@
-FROM python:3-slim
-
+FROM rustlang/rust:nightly-slim AS chef
+RUN rustup toolchain uninstall nightly && \
+    rustup toolchain install nightly-2025-04-03 --profile minimal --no-self-update && \
+    rustup default nightly-2025-04-03 && \
+    rustup component add rustc-codegen-cranelift-preview --toolchain nightly-2025-04-03
+RUN cargo install cargo-chef
 WORKDIR /app
-COPY ./target/release/disbot_v2 ./disbot_v2
+
+
+FROM chef AS planner
+COPY . .
+RUN cargo chef prepare  --recipe-path recipe.json
+
+
+FROM chef AS builder
+COPY .cargo /app/.cargo
+COPY --from=planner /app/recipe.json recipe.json
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    mold \
+    m4 \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+RUN cargo chef cook --release --recipe-path recipe.json
+COPY . .
+RUN cargo build --release --bin disbot_v2
+
+FROM python:3-slim AS runtime
+WORKDIR /app
+COPY --from=builder /app/target/release/disbot_v2 ./disbot_v2
 COPY ./python_dir ./python_dir
-
-
-# fix ./disbot_v2: /lib/aarch64-linux-gnu/libc.so.6: version `GLIBC_2.39' not found (required by ./disbot_v2)
-RUN apt-get update && apt-get install -y build-essential && apt-get upgrade -y
-
-# Define environment variable
-# This is a placeholder - the actual token should be passed at runtime
-ENV DISCORD_TOKEN="placeholder"
-
-RUN chmod +x disbot_v2
-
 CMD ["./disbot_v2"]
